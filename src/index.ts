@@ -363,7 +363,73 @@ export default {
 			if (!secretKey || secretKey !== storedSecretKey) {
 				return new Response("Unauthorized: Invalid or missing secret key", { status: 401 });
 			}
-			return new Response(JSON.stringify(await env.AIEWFSUBMISSIONS.list()));
+
+			// Get all submission keys
+			const submissions = await env.AIEWFSUBMISSIONS.list();
+			
+			// Fetch all submission details
+			const submissionDetails = await Promise.all(
+				submissions.keys.map(async (key) => {
+					const value = await env.AIEWFSUBMISSIONS.get(key.name);
+					return value ? JSON.parse(value) : null;
+				})
+			);
+
+			// Filter out null values and create CSV
+			const validSubmissions = submissionDetails.filter((sub): sub is NonNullable<typeof sub> => sub !== null);
+			
+			// Define CSV headers
+			const headers = [
+				"Submission ID",
+				"Speaker Name",
+				"Speaker Title",
+				"Speaker Company",
+				"Email",
+				"Talk Title",
+				"Tracks",
+				"Abstract",
+				"Speaker Bio",
+				"Review Comments",
+				"Speaker Photo URL",
+				"Submitted At",
+				"Updated At"
+			];
+
+			// Create CSV rows with safe value handling
+			const safeStr = (val: any) => {
+				if (val === null || val === undefined) return '';
+				return String(val).replace(/"/g, '""');
+			};
+
+			const rows = validSubmissions.map(sub => [
+				safeStr(sub.submissionId),
+				`"${safeStr(sub.speakerName)}"`,
+				`"${safeStr(sub.speakerTitle)}"`,
+				`"${safeStr(sub.speakerCompany)}"`,
+				`"${safeStr(sub.email)}"`,
+				`"${safeStr(sub.talkTitle)}"`,
+				`"${Array.isArray(sub.tracks) ? sub.tracks.join(', ') : ''}"`,
+				`"${safeStr(sub.abstract)}"`,
+				`"${safeStr(sub.speakerBio)}"`,
+				`"${safeStr(sub.reviewComments)}"`,
+				`"${safeStr(sub.speakerPhotoUrl)}"`,
+				safeStr(sub.submittedAt),
+				safeStr(sub.updatedAt)
+			]);
+
+			// Combine headers and rows
+			const csvContent = [
+				headers.join(','),
+				...rows.map(row => row.join(','))
+			].join('\n');
+
+			// Return CSV response
+			return new Response(csvContent, {
+				headers: {
+					'Content-Type': 'text/csv',
+					'Content-Disposition': 'attachment; filename="submissions.csv"'
+				}
+			});
 		}
 		// @ts-ignore
 		return MyMCP.mount("/sse").fetch(request, env, ctx);

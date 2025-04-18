@@ -1,0 +1,4 @@
+Error: Secret "SECRETKEY" not found
+    at async Object.fetch (file:///Users/shawnwang/Desktop/Work/aie-mcp/src/index.ts:362:28)
+    at async jsonError (file:///Users/shawnwang/.nvm/versions/node/v23.8.0/lib/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts:22:10)
+    at async drainBody (file:///Users/shawnwang/.nvm/versions/node/v23.8.0/lib/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts:5:10)

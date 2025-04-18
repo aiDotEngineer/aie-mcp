@@ -45,7 +45,7 @@
 	},
 	"secrets_store_secrets": [
 	  {
-		"binding": "MY_SECRETS_STORE_SECRET",
+		"binding": "SECRETKEY",
 		"store_id": "edd1ba8cbc284bb6a4ceb7b7145fc5da",
 		"secret_name": "SECRETKEY"
 	  }
