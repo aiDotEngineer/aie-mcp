@@ -4,7 +4,8 @@ This project hosts the AI Engineer Conference 2025 talk submission system and MC
 
 Thanks to @threepointone for help setting this up with Cloudflare! <3
 
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/7b2ffb86-7096-4c7f-919b-edfa0a977883" />
+<img width="1512" alt="image" src="https://github.com/user-attachments/assets/3545e9a4-d35f-41ef-bd33-85ed89e5e1cb" />
+
 
 ## add this to your MCP Client
 
