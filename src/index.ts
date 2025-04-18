@@ -177,18 +177,28 @@ export class MyMCP extends McpAgent<Env> {
 			email: z.string().email().describe("Email address of the speaker. If you dont know the exact email, you must ask for it before using this tool."),
 			talkTitle: z.string().describe("Title of the proposed talk (can be changed later)"),
 			abstract: z.string().describe("Abstract of the proposed talk - markdown is allowed. (can be changed later)"),
-			tracks: z.array(z.enum(TRACKS)).describe("Possible track categories for the talk (can select up to 3)")
-		}, async ({ speakerName, email, talkTitle, abstract, tracks }) => {
-			const emailHash = hashEmail(email);
+			tracks: z.array(z.enum(TRACKS)).describe("Possible track categories for the talk (can select up to 3)"),
+			speakerTitle: z.string().optional().describe("Speaker's professional title (e.g. CTO, AI Engineer)"),
+			speakerCompany: z.string().optional().describe("Speaker's company or organization"),
+			speakerPhotoUrl: z.string().url().optional().describe("URL to speaker's photo (must be a valid URL)"),
+			speakerBio: z.string().optional().describe("Speaker's bio - markdown is allowed"),
+			reviewComments: z.string().optional().describe("Comments for the review committee on why they should consider this talk")
+		}, async ({ speakerName, email, talkTitle, abstract, tracks, speakerTitle, speakerCompany, speakerPhotoUrl, speakerBio, reviewComments }) => {
+			const secretHash = hashEmail(email);
 			const submissionId = generateSubmissionId();
 			const submission = {
 				speakerName,
 				email,
-				emailHash,
+				secretHash,
 				submissionId,
 				talkTitle,
 				abstract,
 				tracks,
+				speakerTitle,
+				speakerCompany,
+				speakerPhotoUrl,
+				speakerBio,
+				reviewComments,
 				submittedAt: new Date().toISOString()
 			};
 
@@ -201,7 +211,7 @@ export class MyMCP extends McpAgent<Env> {
 			return {
 				content: [{
 					type: "text",
-					text: `Thank you for your submission, ${speakerName}! Your talk "${talkTitle}" has been submitted for the following tracks: ${tracks.join(', ')}. We'll review it and get back to you at ${email}.\n\nYour submission ID is: ${submissionId}\nYour email hash is: ${emailHash} - you can use either to list or edit your submission.`
+					text: `Thank you for your submission, ${speakerName}! Your talk "${talkTitle}" has been submitted for the following tracks: ${tracks.join(', ')}. We'll review it and get back to you at ${email}.\n\nYour submission ID is: ${submissionId}\nYour email hash is: ${secretHash} - you can use either to list or edit your submission.`
 				}]
 			};
 		});
@@ -210,13 +220,18 @@ export class MyMCP extends McpAgent<Env> {
 		"Edit an existing talk submission. You must provide either the submission ID or email hash to identify your submission, and a valid secret key.",
 		{
 			submissionId: z.string().optional().describe("The unique submission ID"),
-			emailHash: z.string().optional().describe("The email hash (alternative to submissionId)"),
+			secretHash: z.string().optional().describe("The email hash (alternative to submissionId)"),
 			speakerName: z.string().optional().describe("Updated full name of the speaker"),
 			email: z.string().email().optional().describe("Updated email address of the speaker"),
 			talkTitle: z.string().optional().describe("Updated title of the proposed talk"),
 			abstract: z.string().optional().describe("Updated abstract of the proposed talk"),
 			tracks: z.array(z.enum(TRACKS)).optional().describe("Updated track categories for the talk"),
-		}, async ({ submissionId, emailHash, speakerName, email, talkTitle, abstract, tracks }) => {
+			speakerTitle: z.string().optional().describe("Updated speaker's professional title"),
+			speakerCompany: z.string().optional().describe("Updated speaker's company or organization"),
+			speakerPhotoUrl: z.string().url().optional().describe("Updated URL to speaker's photo"),
+			speakerBio: z.string().optional().describe("Updated speaker's bio - markdown is allowed"),
+			reviewComments: z.string().optional().describe("Updated comments for the review committee")
+		}, async ({ submissionId, secretHash, speakerName, email, talkTitle, abstract, tracks, speakerTitle, speakerCompany, speakerPhotoUrl, speakerBio, reviewComments }) => {
 
 			// Find the submission
 			let submission;
@@ -231,7 +246,7 @@ export class MyMCP extends McpAgent<Env> {
 					};
 				}
 				submission = JSON.parse(value);
-			} else if (emailHash) {
+			} else if (secretHash) {
 				const submissions = await this.env.AIEWFSUBMISSIONS.list();
 				const submissionDetails = await Promise.all(
 					submissions.keys.map(async (key) => {
@@ -239,7 +254,7 @@ export class MyMCP extends McpAgent<Env> {
 						return value ? JSON.parse(value) : null;
 					})
 				);
-				submission = submissionDetails.find(sub => sub?.emailHash === emailHash);
+				submission = submissionDetails.find(sub => sub?.secretHash === secretHash);
 				if (!submission) {
 					return {
 						content: [{
@@ -265,6 +280,11 @@ export class MyMCP extends McpAgent<Env> {
 				talkTitle: talkTitle || submission.talkTitle,
 				abstract: abstract || submission.abstract,
 				tracks: tracks || submission.tracks,
+				speakerTitle: speakerTitle ?? submission.speakerTitle,
+				speakerCompany: speakerCompany ?? submission.speakerCompany,
+				speakerPhotoUrl: speakerPhotoUrl ?? submission.speakerPhotoUrl,
+				speakerBio: speakerBio ?? submission.speakerBio,
+				reviewComments: reviewComments ?? submission.reviewComments,
 				updatedAt: new Date().toISOString()
 			};
 
@@ -283,8 +303,8 @@ export class MyMCP extends McpAgent<Env> {
 		});
 
 		this.server.tool("list-submissions", {
-			emailHash: z.string().optional().describe("Optional email hash to filter submissions")
-		}, async ({ emailHash }) => {
+			secretHash: z.string().optional().describe("Secret hash to filter submissions")
+		}, async ({ secretHash }) => {
 			const submissions = await this.env.AIEWFSUBMISSIONS.list();
 			const submissionDetails = await Promise.all(
 				submissions.keys.map(async (key) => {
@@ -295,13 +315,13 @@ export class MyMCP extends McpAgent<Env> {
 
 			const validSubmissions = submissionDetails
 				.filter((sub): sub is NonNullable<typeof sub> => sub !== null)
-				.filter(sub => !emailHash || sub.emailHash === emailHash);
+				.filter(sub => !secretHash || sub.secretHash === secretHash);
 
 			if (validSubmissions.length === 0) {
 				return {
 					content: [{
 						type: "text",
-						text: emailHash 
+						text: secretHash 
 							? "No submissions found for the provided email hash."
 							: "No talk submissions found."
 					}]
@@ -310,11 +330,15 @@ export class MyMCP extends McpAgent<Env> {
 
 			const formattedSubmissions = validSubmissions.map(sub => 
 				`Speaker: ${sub.speakerName}\n` +
+				(sub.speakerTitle ? `Title: ${sub.speakerTitle}\n` : '') +
+				(sub.speakerCompany ? `Company: ${sub.speakerCompany}\n` : '') +
 				`Email: ${sub.email}\n` +
 				`Title: ${sub.talkTitle}\n` +
 				`Tracks: ${sub.tracks.join(', ')}\n` +
 				`Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}\n` +
 				`Abstract: ${sub.abstract}\n` +
+				(sub.speakerBio ? `Speaker Bio: ${sub.speakerBio}\n` : '') +
+				(sub.reviewComments ? `Review Comments: ${sub.reviewComments}\n` : '') +
 				`---\n`
 			).join('\n');
 
