@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "my-mcp-server",
+	"name": "ai-engineer-wf-2025",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-03-10",
 	"compatibility_flags": [
@@ -29,7 +29,11 @@
 	"kv_namespaces": [
 		{
 			"binding": "OAUTH_KV",
-			"id": "<ADD YOUR KV NAMESPACEID HERE>"
+			"id": "748bced7761944ecbdeab0b9122cd670"
+		},
+		{
+		  "binding": "AIEWFSUBMISSIONS",
+		  "id": "dbad811fcd034df7a9897903d28b2af6"
 		}
 	],
 	"observability": {
@@ -38,7 +42,14 @@
 	"assets": {
 		"directory": "./static/",
 		"binding": "ASSETS"
-	}
+	},
+	"secrets_store_secrets": [
+	  {
+		"binding": "MY_SECRETS_STORE_SECRET",
+		"store_id": "edd1ba8cbc284bb6a4ceb7b7145fc5da",
+		"secret_name": "SECRETKEY"
+	  }
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

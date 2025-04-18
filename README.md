@@ -1,6 +1,14 @@
-# Remote MCP Server on Cloudflare
+# AI Engineer Workflow 2025
 
-Let's get a remote MCP server up-and-running on Cloudflare Workers complete with OAuth login!
+This project hosts the AI Engineer Conference 2025 talk submission system and MCP server.
+
+## Project Structure
+
+The project is built as a Cloudflare Worker with the following key components:
+- MCP server implementation in `src/index.ts`
+- Application logic in `src/app.ts`
+- Utility functions in `src/utils.ts`
+- Static assets in `static/` directory
 
 ## Develop locally
 
@@ -13,7 +21,7 @@ cd ai
 npm install
 
 # run locally
-npx nx dev remote-mcp-server
+npx wrangler dev
 ```
 
 You should be able to open [`http://localhost:8787/`](http://localhost:8787/) in your browser
@@ -69,9 +77,14 @@ When you open Claude a browser window should open and allow you to login. You sh
 
 ## Deploy to Cloudflare
 
-1. `npx wrangler kv namespace create OAUTH_KV`
-2. Follow the guidance to add the kv namespace ID to `wrangler.jsonc`
-3. `npm run deploy`
+1. Make sure you have the following KV namespaces created:
+   - `OAUTH_KV` for authentication
+   - `AIEWFSUBMISSIONS` for talk submissions
+2. Ensure your secrets store is configured with the `SECRETKEY`
+3. Deploy using:
+   ```bash
+   npm run deploy
+   ```
 
 ## Call your newly deployed remote MCP server from a remote MCP client
 
