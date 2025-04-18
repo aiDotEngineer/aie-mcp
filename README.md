@@ -2,6 +2,8 @@
 
 This project hosts the AI Engineer Conference 2025 talk submission system and MCP server.
 
+Thanks to @threepointone for help setting this up with Cloudflare! <3
+
 ## Project Structure
 
 The project is built as a Cloudflare Worker with the following key components:
