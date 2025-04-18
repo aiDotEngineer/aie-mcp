@@ -1,10 +1,27 @@
-# AI Engineer Workflow 2025
+# AI Engineer MCP 2025
 
 This project hosts the AI Engineer Conference 2025 talk submission system and MCP server.
 
 Thanks to @threepointone for help setting this up with Cloudflare! <3
 
 <img width="1512" alt="image" src="https://github.com/user-attachments/assets/7b2ffb86-7096-4c7f-919b-edfa0a977883" />
+
+## add this to your MCP Client
+
+`https://ai-engineer-wf-2025.swyx-5de.workers.dev/sse`
+
+```json
+// for example .cursor/mcp.json
+{
+  "mcpServers": {
+    "AIECONF": {
+      "url": "https://ai-engineer-wf-2025.swyx-5de.workers.dev/sse"
+    }
+  }
+}
+```
+
+and then try "tell me about the conference" in your chat app that will then call the MCP server.
 
 
 ## Project Structure
